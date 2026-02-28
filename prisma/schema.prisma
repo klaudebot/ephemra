@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  displayName   String
+  bio           String?
+  avatar        String?
+  coverImage    String?
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  posts         Post[]
+  comments      Comment[]
+  resonances    Resonance[]
+  followers     Follow[]   @relation("following")
+  following     Follow[]   @relation("follower")
+  bookmarks     Bookmark[]
+  notifications Notification[] @relation("recipient")
+  sentNotifs    Notification[] @relation("sender")
+}
+
+model Post {
+  id          String      @id @default(cuid())
+  content     String
+  mediaUrl    String?
+  mediaType   String?     // "image" | "video" | "gif"
+  mood        String      @default("neutral") // "energetic" | "chill" | "thoughtful" | "creative" | "funny" | "vulnerable" | "neutral"
+
+  // Ephemeral mechanics
+  expiresAt   DateTime    // When this post dies
+  isEternal   Boolean     @default(false) // Has it been crystallized?
+  lifespan    Int         @default(21600) // Starting lifespan in seconds (6 hours)
+
+  // Whisper mode (anonymous)
+  isWhisper   Boolean     @default(false)
+
+  authorId    String
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  comments    Comment[]
+  resonances  Resonance[]
+  bookmarks   Bookmark[]
+
+  @@index([authorId])
+  @@index([expiresAt])
+  @@index([mood])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model Resonance {
+  id        String   @id @default(cuid())
+  type      String   @default("resonate") // "resonate" | "amplify" | "echo"
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // "resonance" | "comment" | "follow" | "eternal"
+  read        Boolean  @default(false)
+
+  recipientId String
+  recipient   User     @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  senderId    String?
+  sender      User?    @relation("sender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  postId      String?
+  metadata    String?  // JSON string for extra data
+
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId])
+}

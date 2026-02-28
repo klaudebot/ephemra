@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(post, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: "Failed to create post", detail: String(e).substring(0, 300) }, { status: 500 });
   }
 }

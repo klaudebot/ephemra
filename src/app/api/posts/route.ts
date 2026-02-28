@@ -93,42 +93,46 @@ export async function GET(req: NextRequest) {
 
 // POST /api/posts - Create a post
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const userId = (session.user as Record<string, unknown>).id as string;
-  const body = await req.json();
+    const userId = (session.user as Record<string, unknown>).id as string;
+    const body = await req.json();
 
-  const { content, mood = "neutral", isWhisper = false, mediaUrl, mediaType } = body;
+    const { content, mood = "neutral", isWhisper = false, mediaUrl, mediaType } = body;
 
-  if (!content || content.length > MAX_POST_LENGTH) {
-    return NextResponse.json({ error: "Invalid content" }, { status: 400 });
-  }
+    if (!content || content.length > MAX_POST_LENGTH) {
+      return NextResponse.json({ error: "Invalid content" }, { status: 400 });
+    }
 
-  const expiresAt = new Date(Date.now() + DEFAULT_LIFESPAN * 1000);
+    const expiresAt = new Date(Date.now() + DEFAULT_LIFESPAN * 1000);
 
-  const post = await prisma.post.create({
-    data: {
-      content,
-      mood,
-      isWhisper,
-      mediaUrl,
-      mediaType,
-      expiresAt,
-      lifespan: DEFAULT_LIFESPAN,
-      authorId: userId,
-    },
-    include: {
-      author: {
-        select: { id: true, username: true, displayName: true, avatar: true },
+    const post = await prisma.post.create({
+      data: {
+        content,
+        mood,
+        isWhisper,
+        mediaUrl,
+        mediaType,
+        expiresAt,
+        lifespan: DEFAULT_LIFESPAN,
+        authorId: userId,
       },
-      _count: { select: { comments: true, resonances: true } },
-      resonances: { select: { userId: true, type: true } },
-      bookmarks: { select: { userId: true } },
-    },
-  });
+      include: {
+        author: {
+          select: { id: true, username: true, displayName: true, avatar: true },
+        },
+        _count: { select: { comments: true, resonances: true } },
+        resonances: { select: { userId: true, type: true } },
+        bookmarks: { select: { userId: true } },
+      },
+    });
 
-  return NextResponse.json(post, { status: 201 });
+    return NextResponse.json(post, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+  }
 }

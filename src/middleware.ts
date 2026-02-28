@@ -13,5 +13,8 @@ export const config = {
     "/notifications/:path*",
     "/settings/:path*",
     "/bookmarks/:path*",
+    "/explore/:path*",
+    "/messages/:path*",
+    "/post/:path*",
   ],
 };

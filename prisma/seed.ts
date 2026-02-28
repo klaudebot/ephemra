@@ -173,14 +173,30 @@ async function main() {
     }
   }
 
-  // Create a notification for michael
+  // Create notifications for michael
   await prisma.notification.create({
-    data: {
-      type: "follow",
-      recipientId: michael.id,
-      senderId: sara.id,
-    },
+    data: { type: "follow", recipientId: michael.id, senderId: sara.id },
   });
+  await prisma.notification.create({
+    data: { type: "resonance", recipientId: michael.id, senderId: alice.id },
+  });
+  await prisma.notification.create({
+    data: { type: "comment", recipientId: michael.id, senderId: bob.id },
+  });
+
+  // Create sample DMs
+  const dmData = [
+    { senderId: alice.id, receiverId: michael.id, content: "Hey Michael! Love what you're building with Ephemra. The ephemeral post concept is brilliant." },
+    { senderId: michael.id, receiverId: alice.id, content: "Thanks Alice! Means a lot. The design is what really brings it to life." },
+    { senderId: alice.id, receiverId: michael.id, content: "Have you thought about adding collaborative posts? Could be interesting!" },
+    { senderId: bob.id, receiverId: michael.id, content: "The codebase is super clean. Mind if I contribute to the S3 integration?" },
+    { senderId: michael.id, receiverId: bob.id, content: "Would love that! Check out the .env.example for the S3 config options." },
+    { senderId: sara.id, receiverId: michael.id, content: "My photography post just went Eternal! This platform is amazing ✨" },
+  ];
+
+  for (const dm of dmData) {
+    await prisma.directMessage.create({ data: dm });
+  }
 
   console.log("Seed complete!");
   console.log("Sample login: michael@apexrush.com / Password123@");

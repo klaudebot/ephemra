@@ -17,6 +17,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn, formatTimeRemaining, getLifePercentage, getMoodEmoji, getMoodBg, timeAgo } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
+import { ETERNAL_THRESHOLD } from "@/lib/constants";
 import toast from "react-hot-toast";
 import CommentSection from "./CommentSection";
 
@@ -208,7 +209,9 @@ export default function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
       </div>
 
       {/* Content */}
-      <p className="text-surface-200 leading-relaxed mb-3 whitespace-pre-wrap">{post.content}</p>
+      <Link href={`/post/${post.id}`} className="block">
+        <p className="text-surface-200 leading-relaxed mb-3 whitespace-pre-wrap hover:text-white transition-colors">{post.content}</p>
+      </Link>
 
       {/* Media */}
       {post.mediaUrl && (
@@ -272,6 +275,14 @@ export default function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
           <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} />
         </button>
       </div>
+
+      {/* Eternal progress hint */}
+      {!post.isEternal && post._count.resonances > 0 && post._count.resonances < ETERNAL_THRESHOLD && (
+        <div className="text-xs text-surface-300/50 mt-2 flex items-center gap-1">
+          <Sparkles className="w-3 h-3" />
+          {ETERNAL_THRESHOLD - post._count.resonances} more resonances to become Eternal
+        </div>
+      )}
 
       {/* Comments */}
       {showComments && (

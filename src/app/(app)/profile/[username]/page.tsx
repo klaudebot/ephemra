@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Calendar, Users, Sparkles, Loader2 } from "lucide-react";
+import { Calendar, Users, Sparkles, Loader2, MessageSquare } from "lucide-react";
+import Link from "next/link";
 import PostCard from "@/components/posts/PostCard";
 import type { PostWithRelations, UserProfile } from "@/types";
 import { cn } from "@/lib/utils";
@@ -111,18 +112,27 @@ export default function ProfilePage() {
         </div>
 
         {!isOwnProfile && (
-          <button
-            onClick={handleFollow}
-            disabled={followLoading}
-            className={cn(
-              "rounded-xl px-5 py-2 text-sm font-medium transition-all",
-              user.isFollowing
-                ? "glass text-surface-300 hover:text-red-400 hover:border-red-500/50"
-                : "btn-primary"
-            )}
-          >
-            {user.isFollowing ? "Following" : "Follow"}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/messages/${user.id}`}
+              className="btn-ghost !p-2.5 !rounded-xl border border-surface-700"
+              title="Send message"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Link>
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              className={cn(
+                "rounded-xl px-5 py-2 text-sm font-medium transition-all",
+                user.isFollowing
+                  ? "glass text-surface-300 hover:text-red-400 hover:border-red-500/50"
+                  : "btn-primary"
+              )}
+            >
+              {user.isFollowing ? "Following" : "Follow"}
+            </button>
+          </div>
         )}
       </div>
 

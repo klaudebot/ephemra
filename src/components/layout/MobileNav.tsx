@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, Bell, User, PlusCircle } from "lucide-react";
+import { Home, Search, MessageSquare, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Feed", href: "/feed", icon: Home },
-  { name: "Explore", href: "/explore", icon: Compass },
-  { name: "Create", href: "#compose", icon: PlusCircle },
+  { name: "Explore", href: "/explore", icon: Search },
+  { name: "Messages", href: "/messages", icon: MessageSquare },
   { name: "Alerts", href: "/notifications", icon: Bell },
   { name: "Profile", href: "/profile", icon: User },
 ];
@@ -17,10 +17,10 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/5 lg:hidden z-50 safe-area-pb">
-      <div className="flex items-center justify-around h-16">
+    <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/5 lg:hidden z-50">
+      <div className="flex items-center justify-around h-16 pb-safe">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.name}
@@ -30,7 +30,7 @@ export default function MobileNav() {
                 isActive ? "text-brand-400" : "text-surface-300"
               )}
             >
-              <item.icon className={cn("w-5 h-5", item.name === "Create" && "w-7 h-7")} />
+              <item.icon className="w-5 h-5" />
               <span className="text-[10px]">{item.name}</span>
             </Link>
           );

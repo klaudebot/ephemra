@@ -27,6 +27,8 @@ model User {
   bookmarks     Bookmark[]
   notifications Notification[] @relation("recipient")
   sentNotifs    Notification[] @relation("sender")
+  sentMessages  DirectMessage[] @relation("sentMessages")
+  receivedMessages DirectMessage[] @relation("receivedMessages")
 }
 
 model Post {
@@ -131,4 +133,21 @@ model Notification {
   createdAt   DateTime @default(now())
 
   @@index([recipientId])
+}
+
+model DirectMessage {
+  id         String   @id @default(cuid())
+  content    String
+  read       Boolean  @default(false)
+
+  senderId   String
+  sender     User     @relation("sentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User     @relation("receivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@index([senderId, receiverId])
+  @@index([receiverId])
 }

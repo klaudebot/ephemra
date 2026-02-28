@@ -59,7 +59,7 @@ export async function POST(
     }
 
     return NextResponse.json(comment, { status: 201 });
-  } catch (e) {
-    return NextResponse.json({ error: "Failed", detail: String(e).substring(0, 300) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

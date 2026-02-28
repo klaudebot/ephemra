@@ -14,8 +14,10 @@ function getDatabaseUrl(): string {
     }
     return `file:${tmpDb}`;
   }
-  return process.env.DATABASE_URL || "file:./prisma/dev.db";
+  return process.env.DATABASE_URL?.trim() || "file:./prisma/dev.db";
 }
+
+const dbUrl = getDatabaseUrl();
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
@@ -23,7 +25,7 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     datasources: {
-      db: { url: getDatabaseUrl() },
+      db: { url: dbUrl },
     },
   });
 

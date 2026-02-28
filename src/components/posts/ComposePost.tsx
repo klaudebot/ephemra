@@ -49,8 +49,8 @@ export default function ComposePost({ onPost }: { onPost: (post: PostWithRelatio
   };
 
   return (
-    <div className="card lg:rounded-lg border-x-0 lg:border-x">
-      <div className="p-4">
+    <div>
+      <div className="px-4 py-3">
         <textarea
           value={content}
           onChange={e => setContent(e.target.value)}

@@ -44,45 +44,44 @@ export default function FeedPage() {
   useEffect(() => { setCursor(null); fetchPosts(true); }, [filter, mood]); // eslint-disable-line
 
   return (
-    <div className="max-w-[600px] mx-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-bg-primary/80 backdrop-blur-sm border-b border-border-primary">
-        <div className="flex overflow-x-auto scrollbar-hide">
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
+      {/* Tabs */}
+      <div className="sticky top-0 z-20 bg-bg-primary/90 backdrop-blur-sm border-b border-border-primary">
+        <div className="flex">
           {FILTERS.map(f => (
             <button key={f.value} onClick={() => setFilter(f.value)}
-              className={cn("flex-1 min-w-0 py-3 text-sm font-medium text-center border-b-2 transition-colors whitespace-nowrap px-4",
+              className={cn("flex-1 py-3 text-[13px] font-medium text-center border-b-2 transition-colors",
                 filter === f.value ? "border-text-primary text-text-primary" : "border-transparent text-text-tertiary hover:text-text-secondary"
               )}>
               {f.label}
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Mood filter */}
-        <div className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide border-b border-border-primary">
-          <button onClick={() => setMood("all")}
-            className={cn("text-xs px-3 py-1 rounded-md whitespace-nowrap transition-colors", mood === "all" ? "bg-text-primary text-bg-primary font-semibold" : "text-text-tertiary hover:text-text-secondary")}>
-            All
+      {/* Mood filter */}
+      <div className="flex gap-1.5 px-4 py-2.5 overflow-x-auto scrollbar-hide border-b border-border-primary">
+        <button onClick={() => setMood("all")}
+          className={cn("text-xs px-3 py-1 rounded-md whitespace-nowrap transition-colors", mood === "all" ? "bg-text-primary text-bg-primary font-semibold" : "text-text-tertiary hover:text-text-secondary")}>
+          All
+        </button>
+        {MOODS.map(m => (
+          <button key={m.value} onClick={() => setMood(m.value)}
+            className={cn("text-xs px-3 py-1 rounded-md whitespace-nowrap transition-colors", mood === m.value ? "bg-text-primary text-bg-primary font-semibold" : "text-text-tertiary hover:text-text-secondary")}>
+            {m.emoji} {m.label}
           </button>
-          {MOODS.map(m => (
-            <button key={m.value} onClick={() => setMood(m.value)}
-              className={cn("text-xs px-3 py-1 rounded-md whitespace-nowrap transition-colors", mood === m.value ? "bg-text-primary text-bg-primary font-semibold" : "text-text-tertiary hover:text-text-secondary")}>
-              {m.emoji} {m.label}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
       {/* Compose */}
       <ComposePost onPost={post => setPosts(prev => [post, ...prev])} />
-
-      <div className="divider" />
+      <div className="border-b border-border-primary" />
 
       {/* Posts */}
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>
+        <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-16"><p className="text-text-tertiary text-sm">Nothing here yet</p></div>
+        <div className="text-center py-20 text-text-tertiary text-sm">No posts yet. Share something.</div>
       ) : (
         <>
           {posts.map(post => (
@@ -91,7 +90,7 @@ export default function FeedPage() {
               onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))} />
           ))}
           {hasMore && (
-            <button onClick={() => fetchPosts(false)} disabled={loadingMore} className="w-full py-4 text-sm text-text-tertiary hover:text-text-secondary transition-colors">
+            <button onClick={() => fetchPosts(false)} disabled={loadingMore} className="w-full py-4 text-sm text-text-tertiary hover:text-text-secondary transition-colors border-b border-border-primary">
               {loadingMore ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Load more"}
             </button>
           )}

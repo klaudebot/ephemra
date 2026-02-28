@@ -37,7 +37,7 @@ export default function ExplorePage() {
   useEffect(() => { const t = setTimeout(() => search(query), 300); return () => clearTimeout(t); }, [query, search]);
 
   return (
-    <div className="max-w-[600px] mx-auto">
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
       <div className="sticky top-0 z-20 bg-bg-primary px-4 py-3 border-b border-border-primary">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />

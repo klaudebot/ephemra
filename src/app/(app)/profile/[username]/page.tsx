@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Calendar, Star, Loader2, MessageSquare, Grid3X3 } from "lucide-react";
+import { Star, Loader2, MessageSquare, Grid3X3 } from "lucide-react";
 import PostCard from "@/components/posts/PostCard";
 import type { PostWithRelations, UserProfile } from "@/types";
 import { cn } from "@/lib/utils";
@@ -42,23 +42,23 @@ export default function ProfilePage() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
-  if (!user) return <div className="text-center py-20 text-text-tertiary">User not found</div>;
+  if (!user) return <div className="text-center py-20 text-text-tertiary text-sm">User not found</div>;
 
   return (
-    <div className="max-w-[600px] mx-auto">
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
       {/* Profile header */}
-      <div className="px-6 py-6">
-        <div className="flex items-start gap-6">
-          <div className="w-20 h-20 avatar text-2xl shrink-0">
+      <div className="px-4 py-5">
+        <div className="flex items-start gap-5">
+          <div className="w-[72px] h-[72px] avatar text-2xl shrink-0">
             {user.displayName.charAt(0).toUpperCase()}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-lg font-semibold">{user.username}</h1>
+          <div className="flex-1 min-w-0 pt-1">
+            <div className="flex items-center gap-3 mb-3">
+              <h1 className="text-[16px] font-semibold">{user.username}</h1>
               {!isOwn && (
                 <div className="flex items-center gap-2">
                   <button onClick={handleFollow} disabled={followLoading}
-                    className={cn("text-sm font-semibold rounded-lg px-5 py-1.5 transition-colors",
+                    className={cn("text-[13px] font-semibold rounded-lg px-5 py-1.5 transition-colors",
                       user.isFollowing ? "bg-bg-elevated text-text-primary hover:bg-border-hover" : "bg-accent text-white hover:bg-accent-hover"
                     )}>
                     {user.isFollowing ? "Following" : "Follow"}
@@ -70,29 +70,29 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="flex items-center gap-5 text-sm mt-2">
+            <div className="flex items-center gap-5 text-[14px]">
               <span><strong>{user._count.posts}</strong> <span className="text-text-secondary">posts</span></span>
               <span><strong>{user._count.followers}</strong> <span className="text-text-secondary">followers</span></span>
               <span><strong>{user._count.following}</strong> <span className="text-text-secondary">following</span></span>
             </div>
-
-            <div className="mt-3">
-              <p className="text-sm font-semibold">{user.displayName}</p>
-              {user.bio && <p className="text-sm text-text-secondary mt-0.5">{user.bio}</p>}
-            </div>
           </div>
+        </div>
+
+        <div className="mt-3">
+          <p className="text-[14px] font-semibold">{user.displayName}</p>
+          {user.bio && <p className="text-[14px] text-text-secondary mt-0.5">{user.bio}</p>}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-t border-border-primary">
+      <div className="flex border-y border-border-primary">
         <button onClick={() => setTab("active")}
-          className={cn("flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b transition-colors",
+          className={cn("flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 transition-colors",
             tab === "active" ? "border-text-primary text-text-primary" : "border-transparent text-text-tertiary")}>
           <Grid3X3 className="w-3.5 h-3.5" /> Posts
         </button>
         <button onClick={() => setTab("eternal")}
-          className={cn("flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b transition-colors",
+          className={cn("flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 border-b-2 transition-colors",
             tab === "eternal" ? "border-text-primary text-text-primary" : "border-transparent text-text-tertiary")}>
           <Star className="w-3.5 h-3.5" /> Eternal
         </button>
@@ -100,7 +100,7 @@ export default function ProfilePage() {
 
       {/* Posts */}
       {posts.length === 0 ? (
-        <div className="text-center py-16 text-text-tertiary text-sm">
+        <div className="text-center py-20 text-text-tertiary text-sm">
           {tab === "eternal" ? "No eternal posts" : "No posts yet"}
         </div>
       ) : (

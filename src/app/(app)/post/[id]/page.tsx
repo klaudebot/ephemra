@@ -24,7 +24,7 @@ export default function PostDetailPage() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
 
   if (error) return (
-    <div className="max-w-[600px] mx-auto text-center py-20">
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen text-center py-20">
       <Clock className="w-8 h-8 text-text-tertiary mx-auto mb-3" />
       <p className="text-sm text-text-secondary mb-4">{error}</p>
       <Link href="/feed" className="text-accent text-sm font-semibold">Back to feed</Link>
@@ -32,10 +32,10 @@ export default function PostDetailPage() {
   );
 
   return (
-    <div className="max-w-[600px] mx-auto">
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
       <div className="px-4 py-3 border-b border-border-primary flex items-center gap-3">
         <Link href="/feed" className="text-text-secondary hover:text-text-primary"><ArrowLeft className="w-5 h-5" /></Link>
-        <span className="font-bold text-base">Post</span>
+        <span className="text-[16px] font-bold">Post</span>
       </div>
       {post && <PostCard post={post} onUpdate={setPost} onDelete={() => window.history.back()} />}
     </div>

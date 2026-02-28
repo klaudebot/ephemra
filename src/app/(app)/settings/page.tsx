@@ -24,9 +24,9 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-[600px] mx-auto">
-      <div className="px-4 py-4 border-b border-border-primary">
-        <h1 className="text-lg font-bold">Settings</h1>
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
+      <div className="px-4 py-3 border-b border-border-primary">
+        <h1 className="text-[16px] font-bold">Settings</h1>
       </div>
 
       <div className="p-4 space-y-4 border-b border-border-primary">

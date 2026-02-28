@@ -14,9 +14,9 @@ export default function BookmarksPage() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
 
   return (
-    <div className="max-w-[600px] mx-auto">
-      <div className="px-4 py-4 border-b border-border-primary">
-        <h1 className="text-lg font-bold">Saved</h1>
+    <div className="max-w-[600px] mx-auto border-x border-border-primary min-h-screen">
+      <div className="px-4 py-3 border-b border-border-primary">
+        <h1 className="text-[16px] font-bold">Saved</h1>
       </div>
       {posts.length === 0 ? (
         <p className="text-center py-16 text-text-tertiary text-sm">No saved posts</p>

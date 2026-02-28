@@ -52,7 +52,7 @@ export default function ChatPage() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] lg:h-screen max-w-[600px] mx-auto">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] lg:h-screen max-w-[600px] mx-auto border-x border-border-primary">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border-primary shrink-0">
         <Link href="/messages" className="text-text-secondary hover:text-text-primary lg:hidden"><ArrowLeft className="w-5 h-5" /></Link>
         <div className="w-8 h-8 avatar text-xs">{partner?.displayName.charAt(0).toUpperCase()}</div>

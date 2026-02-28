@@ -10,12 +10,7 @@ interface Comment {
   id: string;
   content: string;
   createdAt: string;
-  author: {
-    id: string;
-    username: string;
-    displayName: string;
-    avatar: string | null;
-  };
+  author: { id: string; username: string; displayName: string; avatar: string | null };
 }
 
 export default function CommentSection({ postId }: { postId: string }) {
@@ -25,90 +20,48 @@ export default function CommentSection({ postId }: { postId: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/posts/${postId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setComments(data.comments || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetch(`/api/posts/${postId}`).then(r => r.json()).then(d => { setComments(d.comments || []); setLoading(false); }).catch(() => setLoading(false));
   }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || submitting) return;
     setSubmitting(true);
-
     try {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-
+      const res = await fetch(`/api/posts/${postId}/comments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) });
       if (!res.ok) throw new Error();
       const comment = await res.json();
       setComments([comment, ...comments]);
       setContent("");
-      toast.success("Comment added! +15 min life");
-    } catch {
-      toast.error("Failed to comment");
-    } finally {
-      setSubmitting(false);
-    }
+    } catch { toast.error("Failed"); }
+    finally { setSubmitting(false); }
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-white/5">
-      {/* Comment input */}
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Add a comment..."
-          className="input-dark flex-1 !py-2 text-sm"
-          maxLength={280}
-        />
-        <button
-          type="submit"
-          disabled={!content.trim() || submitting}
-          className="btn-primary !p-2 !rounded-xl"
-        >
-          <Send className="w-4 h-4" />
+    <div className="px-4 pb-3 border-t border-border-primary">
+      <form onSubmit={handleSubmit} className="flex gap-2 py-2">
+        <input type="text" value={content} onChange={e => setContent(e.target.value)} placeholder="Add a comment..." className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-tertiary outline-none" maxLength={280} />
+        <button type="submit" disabled={!content.trim() || submitting} className="text-accent text-sm font-semibold disabled:opacity-40">
+          Post
         </button>
       </form>
 
-      {/* Comments list */}
-      {loading ? (
-        <div className="text-center py-4 text-surface-300 text-sm">Loading...</div>
-      ) : comments.length === 0 ? (
-        <p className="text-center py-4 text-surface-300 text-sm">
-          No comments yet. Be the first to engage!
-        </p>
-      ) : (
-        <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-hide">
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-2">
-              <div className="w-7 h-7 rounded-full gradient-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {comment.author.displayName.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/profile/${comment.author.username}`}
-                    className="text-sm font-medium hover:underline"
-                  >
-                    {comment.author.displayName}
-                  </Link>
-                  <span className="text-xs text-surface-300">{timeAgo(comment.createdAt)}</span>
-                </div>
-                <p className="text-sm text-surface-200">{comment.content}</p>
+      {loading ? <p className="text-xs text-text-tertiary py-2">Loading...</p> :
+        comments.length === 0 ? <p className="text-xs text-text-tertiary py-2">No comments yet</p> :
+        <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+          {comments.map(c => (
+            <div key={c.id} className="flex gap-2">
+              <div className="w-6 h-6 avatar text-[10px] shrink-0">{c.author.displayName.charAt(0).toUpperCase()}</div>
+              <div className="min-w-0">
+                <p className="text-sm">
+                  <Link href={`/profile/${c.author.username}`} className="font-semibold hover:underline">{c.author.username}</Link>{" "}
+                  <span className="text-text-secondary">{c.content}</span>
+                </p>
+                <span className="text-[11px] text-text-tertiary">{timeAgo(c.createdAt)}</span>
               </div>
             </div>
           ))}
-        </div>
-      )}
+        </div>}
     </div>
   );
 }

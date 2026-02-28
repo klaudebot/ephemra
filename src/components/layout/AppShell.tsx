@@ -10,8 +10,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+        <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -21,11 +21,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-bg-primary">
       <Sidebar />
-      <main className="lg:ml-64 min-h-screen pb-20 lg:pb-0">
-        {children}
-      </main>
+      <main className="lg:ml-[220px] min-h-screen pb-14 lg:pb-0">{children}</main>
       <MobileNav />
     </div>
   );

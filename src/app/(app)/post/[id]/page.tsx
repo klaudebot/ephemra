@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Clock, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Clock } from "lucide-react";
 import Link from "next/link";
 import PostCard from "@/components/posts/PostCard";
 import type { PostWithRelations } from "@/types";
@@ -15,103 +14,30 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/posts/${id}`)
-      .then((r) => {
-        if (r.status === 410) {
-          setError("This moment has faded away");
-          setLoading(false);
-          return null;
-        }
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((data) => {
-        if (data) setPost(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Post not found");
-        setLoading(false);
-      });
+    fetch(`/api/posts/${id}`).then(r => {
+      if (r.status === 410) { setError("This post has faded"); setLoading(false); return null; }
+      if (!r.ok) throw new Error();
+      return r.json();
+    }).then(d => { if (d) setPost(d); setLoading(false); }).catch(() => { setError("Not found"); setLoading(false); });
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-brand-400" />
-      </div>
-    );
-  }
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
 
-  if (error) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <div className="glass rounded-2xl p-12">
-          <Clock className="w-12 h-12 text-surface-700 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">{error}</h2>
-          <p className="text-surface-300 text-sm mb-6">
-            Posts on Ephemra have a lifespan. This one has expired.
-          </p>
-          <Link href="/feed" className="btn-primary inline-flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Feed
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  if (error) return (
+    <div className="max-w-[600px] mx-auto text-center py-20">
+      <Clock className="w-8 h-8 text-text-tertiary mx-auto mb-3" />
+      <p className="text-sm text-text-secondary mb-4">{error}</p>
+      <Link href="/feed" className="text-accent text-sm font-semibold">Back to feed</Link>
+    </div>
+  );
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <Link
-        href="/feed"
-        className="inline-flex items-center gap-2 text-surface-300 hover:text-white transition mb-6 text-sm"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to feed
-      </Link>
-
-      {post && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <PostCard
-            post={post}
-            onUpdate={setPost}
-            onDelete={() => window.history.back()}
-          />
-
-          {/* Post stats */}
-          <div className="glass rounded-xl p-4 mt-4">
-            <div className="flex items-center justify-around text-center">
-              <div>
-                <p className="text-lg font-bold">{post._count.resonances}</p>
-                <p className="text-xs text-surface-300">Resonances</p>
-              </div>
-              <div className="w-px h-8 bg-surface-700" />
-              <div>
-                <p className="text-lg font-bold">{post._count.comments}</p>
-                <p className="text-xs text-surface-300">Comments</p>
-              </div>
-              <div className="w-px h-8 bg-surface-700" />
-              <div className="flex items-center gap-1">
-                {post.isEternal ? (
-                  <>
-                    <Sparkles className="w-4 h-4 text-brand-400" />
-                    <p className="text-sm font-medium text-brand-400">Eternal</p>
-                  </>
-                ) : (
-                  <>
-                    <Clock className="w-4 h-4 text-surface-300" />
-                    <p className="text-sm text-surface-300">Ticking</p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+    <div className="max-w-[600px] mx-auto">
+      <div className="px-4 py-3 border-b border-border-primary flex items-center gap-3">
+        <Link href="/feed" className="text-text-secondary hover:text-text-primary"><ArrowLeft className="w-5 h-5" /></Link>
+        <span className="font-bold text-base">Post</span>
+      </div>
+      {post && <PostCard post={post} onUpdate={setPost} onDelete={() => window.history.back()} />}
     </div>
   );
 }

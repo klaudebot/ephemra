@@ -5,113 +5,77 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
-  Home,
-  Compass,
-  Bell,
-  Bookmark,
-  User,
-  Settings,
-  Sparkles,
-  Ghost,
-  MessageSquare,
-  LogOut,
-  Search,
+  Home, Search, Bell, Bookmark, User, Settings,
+  MessageSquare, PlusSquare, LogOut, Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navigation = [
-  { name: "Feed", href: "/feed", icon: Home },
+const nav = [
+  { name: "Home", href: "/feed", icon: Home },
   { name: "Explore", href: "/explore", icon: Search },
-  { name: "Eternal", href: "/feed?filter=eternal", icon: Sparkles },
-  { name: "Whispers", href: "/feed?filter=whispers", icon: Ghost },
-  { name: "Messages", href: "/messages", icon: MessageSquare, badge: "messages" },
-  { name: "Notifications", href: "/notifications", icon: Bell, badge: "notifications" },
+  { name: "Messages", href: "/messages", icon: MessageSquare, badge: true },
+  { name: "Notifications", href: "/notifications", icon: Bell, badge: true },
   { name: "Bookmarks", href: "/bookmarks", icon: Bookmark },
   { name: "Profile", href: "/profile", icon: User },
-  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [badges, setBadges] = useState<Record<string, number>>({});
+  const [unread, setUnread] = useState(0);
 
-  // Poll for notification/message counts
   useEffect(() => {
-    const fetchBadges = async () => {
-      try {
-        const [notifRes] = await Promise.all([
-          fetch("/api/notifications"),
-        ]);
-        const notifData = await notifRes.json();
-        setBadges((prev) => ({
-          ...prev,
-          notifications: notifData.unreadCount || 0,
-        }));
-      } catch {}
-    };
-
-    fetchBadges();
-    const interval = setInterval(fetchBadges, 30000);
-    return () => clearInterval(interval);
+    fetch("/api/notifications").then(r => r.json()).then(d => setUnread(d.unreadCount || 0)).catch(() => {});
+    const i = setInterval(() => {
+      fetch("/api/notifications").then(r => r.json()).then(d => setUnread(d.unreadCount || 0)).catch(() => {});
+    }, 30000);
+    return () => clearInterval(i);
   }, []);
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 glass border-r border-white/5 p-6 hidden lg:flex flex-col z-40">
-      <Link href="/feed" className="text-xl font-bold gradient-text mb-8 block">
-        ephemra
+    <aside className="fixed left-0 top-0 h-full w-[220px] border-r border-border-primary bg-bg-primary p-4 pt-6 hidden lg:flex flex-col z-40">
+      <Link href="/feed" className="flex items-center gap-2 px-3 mb-8">
+        <Flame className="w-6 h-6 text-accent" />
+        <span className="text-lg font-bold tracking-tight">ephemra</span>
       </Link>
 
-      <nav className="flex-1 space-y-1">
-        {navigation.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href.startsWith("/feed") && pathname === "/feed" && item.href === "/feed");
-          const badgeCount = item.badge ? badges[item.badge] || 0 : 0;
-
+      <nav className="flex-1 space-y-0.5">
+        {nav.map((item) => {
+          const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative",
-                isActive
-                  ? "bg-brand-500/20 text-brand-300"
-                  : "text-surface-300 hover:text-white hover:bg-white/5"
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150 relative",
+                active ? "font-semibold text-text-primary" : "text-text-secondary hover:text-text-primary"
               )}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className={cn("w-[22px] h-[22px]", active && "stroke-[2.5px]")} />
               {item.name}
-              {badgeCount > 0 && (
-                <span className="ml-auto bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {badgeCount > 99 ? "99+" : badgeCount}
-                </span>
+              {item.badge && item.name === "Notifications" && unread > 0 && (
+                <span className="badge ml-auto">{unread > 9 ? "9+" : unread}</span>
               )}
             </Link>
           );
         })}
       </nav>
 
-      {session?.user && (
-        <div className="space-y-2">
-          <div className="glass-strong rounded-xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-sm">
-              {session.user.name?.charAt(0).toUpperCase() || "?"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{session.user.name}</p>
-              <p className="text-xs text-surface-300 truncate">{session.user.email}</p>
-            </div>
-          </div>
+      <div className="space-y-1 pt-4 border-t border-border-primary">
+        <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-text-secondary hover:text-text-primary transition-colors">
+          <Settings className="w-[22px] h-[22px]" />
+          Settings
+        </Link>
+        {session?.user && (
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 text-xs text-surface-300 hover:text-red-400 transition px-4 py-2 w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-text-secondary hover:text-danger transition-colors w-full"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign out
+            <LogOut className="w-[22px] h-[22px]" />
+            Log out
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }

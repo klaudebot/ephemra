@@ -1,56 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
-  Heart,
-  MessageCircle,
-  Bookmark,
-  MoreHorizontal,
-  Sparkles,
-  Clock,
-  Trash2,
-  Ghost,
+  Heart, MessageCircle, Bookmark, MoreHorizontal,
+  Trash2, Clock, Star, Eye,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { cn, formatTimeRemaining, getLifePercentage, getMoodEmoji, getMoodBg, timeAgo } from "@/lib/utils";
-import type { PostWithRelations } from "@/types";
+import { cn, formatTimeRemaining, getLifePercentage, getLifeColor, getMoodEmoji, timeAgo } from "@/lib/utils";
 import { ETERNAL_THRESHOLD } from "@/lib/constants";
+import type { PostWithRelations } from "@/types";
 import toast from "react-hot-toast";
 import CommentSection from "./CommentSection";
 
-interface PostCardProps {
+interface Props {
   post: PostWithRelations;
   onUpdate?: (post: PostWithRelations) => void;
   onDelete?: (postId: string) => void;
 }
 
-export default function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
+export default function PostCard({ post, onUpdate, onDelete }: Props) {
   const { data: session } = useSession();
   const userId = (session?.user as Record<string, unknown>)?.id as string;
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [isResonating, setIsResonating] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const hasResonated = post.resonances?.some((r) => r.userId === userId);
-  const isBookmarked = post.bookmarks?.some((b) => b.userId === userId);
+  const liked = post.resonances?.some((r) => r.userId === userId);
+  const saved = post.bookmarks?.some((b) => b.userId === userId);
   const isOwner = post.authorId === userId;
-  const lifePercent = post.isEternal ? 100 : getLifePercentage(post.createdAt, post.expiresAt);
+  const lifePct = post.isEternal ? 100 : getLifePercentage(post.createdAt, post.expiresAt);
+  const lifeColor = post.isEternal ? "#0095f6" : getLifeColor(lifePct);
   const timeLeft = post.isEternal ? "Eternal" : formatTimeRemaining(post.expiresAt);
-
-  const getLifeColor = () => {
-    if (post.isEternal) return "#a78bfa";
-    if (lifePercent > 60) return "#7c3aed";
-    if (lifePercent > 30) return "#f59e0b";
-    return "#ef4444";
-  };
+  const isAnon = post.isWhisper && post.author.id === "anonymous";
 
   const handleResonate = async () => {
-    if (isResonating) return;
-    setIsResonating(true);
-
+    if (busy) return;
+    setBusy(true);
     try {
       const res = await fetch(`/api/posts/${post.id}/resonate`, {
         method: "POST",
@@ -58,47 +45,27 @@ export default function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
         body: JSON.stringify({ type: "resonate" }),
       });
       const data = await res.json();
-
-      if (data.isEternal) {
-        toast.success("This post has become Eternal! ✨");
-      }
-
-      // Optimistic update
+      if (data.isEternal) toast.success("This post is now Eternal!");
       if (onUpdate) {
-        const newResonances = data.resonated
-          ? [...(post.resonances || []), { userId, type: "resonate" }]
-          : (post.resonances || []).filter((r) => r.userId !== userId);
         onUpdate({
           ...post,
-          resonances: newResonances,
+          resonances: data.resonated
+            ? [...(post.resonances || []), { userId, type: "resonate" }]
+            : (post.resonances || []).filter((r) => r.userId !== userId),
           isEternal: data.isEternal || post.isEternal,
-          _count: {
-            ...post._count,
-            resonances: post._count.resonances + (data.resonated ? 1 : -1),
-          },
+          _count: { ...post._count, resonances: post._count.resonances + (data.resonated ? 1 : -1) },
         });
       }
-    } catch {
-      toast.error("Failed to resonate");
-    } finally {
-      setIsResonating(false);
-    }
+    } catch { toast.error("Failed"); }
+    finally { setBusy(false); }
   };
 
   const handleBookmark = async () => {
     try {
       const res = await fetch(`/api/posts/${post.id}/bookmark`, { method: "POST" });
       const data = await res.json();
-
-      if (onUpdate) {
-        onUpdate({
-          ...post,
-          bookmarks: data.bookmarked ? [{ userId }] : [],
-        });
-      }
-    } catch {
-      toast.error("Failed to bookmark");
-    }
+      onUpdate?.({ ...post, bookmarks: data.bookmarked ? [{ userId }] : [] });
+    } catch { toast.error("Failed"); }
   };
 
   const handleDelete = async () => {
@@ -106,188 +73,106 @@ export default function PostCard({ post, onUpdate, onDelete }: PostCardProps) {
     try {
       await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
       onDelete?.(post.id);
-      toast.success("Post deleted");
-    } catch {
-      toast.error("Failed to delete");
-    }
+    } catch { toast.error("Failed"); }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="glass rounded-2xl p-5 hover-lift"
-    >
+    <article className="card border-x-0 lg:border-x border-b last:border-b-0 lg:rounded-lg lg:mb-3 lg:border">
       {/* Header */}
-      <div className="flex items-start gap-3 mb-3">
-        {/* Life ring avatar */}
-        <Link href={post.isWhisper && post.author.id === "anonymous" ? "#" : `/profile/${post.author.username}`}>
-          <div className="relative w-11 h-11">
-            <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
-              <circle
-                cx="22" cy="22" r="20"
-                fill="none"
-                stroke="rgba(255,255,255,0.05)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="22" cy="22" r="20"
-                fill="none"
-                stroke={getLifeColor()}
-                strokeWidth="2"
-                strokeDasharray={`${(lifePercent / 100) * 125.6} 125.6`}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
-              />
-            </svg>
-            <div className="absolute inset-1 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-xs overflow-hidden">
-              {post.isWhisper && post.author.id === "anonymous" ? (
-                <Ghost className="w-4 h-4" />
-              ) : post.author.avatar ? (
-                <Image src={post.author.avatar} alt="" fill className="object-cover" />
-              ) : (
-                post.author.displayName.charAt(0).toUpperCase()
-              )}
-            </div>
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Link href={isAnon ? "#" : `/profile/${post.author.username}`} className="shrink-0">
+          <div className="w-8 h-8 avatar text-xs">
+            {isAnon ? <Eye className="w-4 h-4 text-text-tertiary" /> :
+              post.author.avatar ? <Image src={post.author.avatar} alt="" fill className="object-cover" /> :
+              post.author.displayName.charAt(0).toUpperCase()}
           </div>
         </Link>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Link
-              href={post.isWhisper && post.author.id === "anonymous" ? "#" : `/profile/${post.author.username}`}
-              className="font-medium text-sm hover:underline"
-            >
-              {post.author.displayName}
+          <div className="flex items-center gap-1.5">
+            <Link href={isAnon ? "#" : `/profile/${post.author.username}`} className="text-sm font-semibold hover:underline truncate">
+              {isAnon ? "Anonymous" : post.author.username}
             </Link>
-            {post.isWhisper && (
-              <span className="text-xs px-1.5 py-0.5 rounded-full bg-surface-700 text-surface-300">
-                whisper
-              </span>
-            )}
-            {post.isEternal && (
-              <Sparkles className="w-4 h-4 text-brand-400" />
-            )}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-surface-300">
-            <span>{timeAgo(post.createdAt)}</span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {timeLeft}
-            </span>
+            {post.isEternal && <Star className="w-3.5 h-3.5 text-accent fill-accent" />}
+            <span className="text-text-tertiary text-xs">· {timeAgo(post.createdAt)}</span>
           </div>
         </div>
 
-        {/* Mood tag */}
-        <span className={cn("text-xs px-2 py-1 rounded-full border", getMoodBg(post.mood))}>
-          {getMoodEmoji(post.mood)} {post.mood}
-        </span>
-
-        {/* Menu */}
-        {isOwner && (
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="text-surface-300 hover:text-white p-1"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
-            {showMenu && (
-              <div className="absolute right-0 top-8 glass-strong rounded-xl py-2 w-36 z-10">
-                <button
-                  onClick={handleDelete}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-white/5 w-full"
-                >
-                  <Trash2 className="w-4 h-4" /> Delete
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-text-tertiary flex items-center gap-1">
+            <Clock className="w-3 h-3" />{timeLeft}
+          </span>
+          {isOwner && (
+            <div className="relative">
+              <button onClick={() => setShowMenu(!showMenu)} className="text-text-tertiary hover:text-text-primary p-1">
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-8 bg-bg-elevated border border-border-secondary rounded-lg py-1 w-32 z-10 shadow-lg">
+                  <button onClick={handleDelete} className="flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-bg-tertiary w-full">
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}
-      <Link href={`/post/${post.id}`} className="block">
-        <p className="text-surface-200 leading-relaxed mb-3 whitespace-pre-wrap hover:text-white transition-colors">{post.content}</p>
-      </Link>
+      <div className="px-4 pb-2">
+        <Link href={`/post/${post.id}`}>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+        </Link>
+      </div>
 
       {/* Media */}
       {post.mediaUrl && (
-        <div className="rounded-xl overflow-hidden mb-3 relative aspect-video bg-surface-800">
+        <div className="mt-1 relative aspect-video bg-bg-tertiary">
           {post.mediaType === "video" ? (
             <video src={post.mediaUrl} controls className="w-full h-full object-cover" />
           ) : (
-            <Image
-              src={post.mediaUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 600px"
-            />
+            <Image src={post.mediaUrl} alt="" fill className="object-cover" sizes="600px" />
           )}
         </div>
       )}
 
-      {/* Life bar */}
-      {!post.isEternal && (
-        <div className="h-1 bg-surface-700 rounded-full overflow-hidden mb-3">
-          <motion.div
-            className="h-full rounded-full transition-colors duration-500"
-            style={{ backgroundColor: getLifeColor(), width: `${lifePercent}%` }}
-          />
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={handleResonate}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all",
-            hasResonated
-              ? "text-brand-400 bg-brand-500/10"
-              : "text-surface-300 hover:text-brand-400 hover:bg-brand-500/5"
-          )}
-        >
-          <Heart className={cn("w-4 h-4", hasResonated && "fill-current")} />
-          <span>{post._count.resonances}</span>
-        </button>
-
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-surface-300 hover:text-white hover:bg-white/5 transition-all"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>{post._count.comments}</span>
-        </button>
-
-        <button
-          onClick={handleBookmark}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ml-auto",
-            isBookmarked
-              ? "text-yellow-400 bg-yellow-500/10"
-              : "text-surface-300 hover:text-yellow-400 hover:bg-yellow-500/5"
-          )}
-        >
-          <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} />
-        </button>
+      {/* Mood + Life bar */}
+      <div className="px-4 pt-2 flex items-center gap-2">
+        <span className="text-[11px] text-text-tertiary">{getMoodEmoji(post.mood)} {post.mood}</span>
+        {!post.isEternal && (
+          <div className="flex-1 h-0.5 bg-border-primary rounded-full overflow-hidden">
+            <div className="life-bar h-full" style={{ backgroundColor: lifeColor, width: `${lifePct}%` }} />
+          </div>
+        )}
+        {post.isEternal && <div className="flex-1 h-0.5 bg-accent/30 rounded-full" />}
       </div>
 
-      {/* Eternal progress hint */}
-      {!post.isEternal && post._count.resonances > 0 && post._count.resonances < ETERNAL_THRESHOLD && (
-        <div className="text-xs text-surface-300/50 mt-2 flex items-center gap-1">
-          <Sparkles className="w-3 h-3" />
-          {ETERNAL_THRESHOLD - post._count.resonances} more resonances to become Eternal
-        </div>
-      )}
+      {/* Actions */}
+      <div className="flex items-center px-4 py-2">
+        <div className="flex items-center gap-4">
+          <button onClick={handleResonate} className="flex items-center gap-1.5 group">
+            <Heart className={cn("w-5 h-5 transition-colors", liked ? "text-danger fill-danger" : "text-text-secondary group-hover:text-text-primary")} />
+            {post._count.resonances > 0 && <span className="text-xs text-text-secondary">{post._count.resonances}</span>}
+          </button>
 
-      {/* Comments */}
-      {showComments && (
-        <CommentSection postId={post.id} />
-      )}
-    </motion.div>
+          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 group">
+            <MessageCircle className="w-5 h-5 text-text-secondary group-hover:text-text-primary transition-colors" />
+            {post._count.comments > 0 && <span className="text-xs text-text-secondary">{post._count.comments}</span>}
+          </button>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          {!post.isEternal && post._count.resonances > 0 && post._count.resonances < ETERNAL_THRESHOLD && (
+            <span className="text-[10px] text-text-tertiary">{ETERNAL_THRESHOLD - post._count.resonances} to eternal</span>
+          )}
+          <button onClick={handleBookmark}>
+            <Bookmark className={cn("w-5 h-5 transition-colors", saved ? "text-text-primary fill-text-primary" : "text-text-secondary hover:text-text-primary")} />
+          </button>
+        </div>
+      </div>
+
+      {showComments && <CommentSection postId={post.id} />}
+    </article>
   );
 }

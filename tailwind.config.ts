@@ -6,52 +6,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#f0f0ff",
-          100: "#e0e0ff",
-          200: "#c4b5fd",
-          300: "#a78bfa",
-          400: "#8b5cf6",
-          500: "#7c3aed",
-          600: "#6d28d9",
-          700: "#5b21b6",
-          800: "#4c1d95",
-          900: "#3b0764",
+        accent: "#0095f6",
+        "accent-hover": "#1aa1f7",
+        "accent-dark": "#0074cc",
+        danger: "#ed4956",
+        success: "#00c853",
+        warning: "#ffab00",
+        bg: {
+          primary: "#000000",
+          secondary: "#121212",
+          tertiary: "#1a1a1a",
+          elevated: "#262626",
         },
-        surface: {
-          50: "#fafafa",
-          100: "#f4f4f5",
-          200: "#e4e4e7",
-          300: "#d4d4d8",
-          700: "#27272a",
-          800: "#18181b",
-          850: "#121215",
-          900: "#09090b",
+        border: {
+          primary: "#262626",
+          secondary: "#363636",
+          hover: "#484848",
+        },
+        text: {
+          primary: "#f5f5f5",
+          secondary: "#a8a8a8",
+          tertiary: "#737373",
+          link: "#e0f1ff",
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-cal)", "var(--font-inter)", "system-ui", "sans-serif"],
-      },
-      animation: {
-        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "fade-in": "fadeIn 0.5s ease-out",
-        "slide-up": "slideUp 0.5s ease-out",
-        "glow": "glow 2s ease-in-out infinite alternate",
-      },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        slideUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        glow: {
-          "0%": { boxShadow: "0 0 5px rgba(124, 58, 237, 0.2)" },
-          "100%": { boxShadow: "0 0 20px rgba(124, 58, 237, 0.4)" },
-        },
+        sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
       },
     },
   },
